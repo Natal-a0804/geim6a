@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Морское путешествие · Мировой океан</title>
+<style>
+:root{
+  --bg:#062a44; --bg2:#0b4f6c;
+  --card:#f3fafd; --card2:#e3f3fa;
+  --primary:#0b5d8a; --primary-d:#06364f;
+  --accent:#f4b860;
+  --text:#0a2e44; --text-l:#eaf7fc;
+  --ok:#2e9e6b; --ok-bg:#dcf5e8;
+  --err:#d1495b; --err-bg:#fbe0e4;
+  --muted:#7fa9c0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+[hidden]{display:none!important}
+body{
+  font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;
+  background:linear-gradient(180deg,#062a44 0%,#0b4f6c 40%,#11738f 70%,#1d9bb5 100%);
+  background-attachment:fixed;
+  color:var(--text); min-height:100vh; overflow-x:hidden;
+}
+.bubbles{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bubble{position:absolute;bottom:-70px;border-radius:50%;
+  background:radial-gradient(circle at 32% 30%,rgba(255,255,255,.95),rgba(150,225,255,.25) 55%,transparent 75%);
+  border:1px solid rgba(200,240,255,.35);animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-118vh)}}
+.sea-waves{position:fixed;left:0;right:0;bottom:0;width:100%;height:22vh;z-index:0;pointer-events:none}
+.topbar{position:sticky;top:0;z-index:50;padding:10px 16px 12px;
+  background:linear-gradient(180deg,rgba(5,34,52,.95),rgba(5,34,52,.82));
+  border-bottom:1px solid rgba(140,220,255,.18);
+  box-shadow:0 8px 24px rgba(2,16,26,.45)}
+.topbar-main{display:flex;align-items:center;gap:12px;max-width:980px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:8px;color:var(--text-l);font-weight:700;font-size:1rem;flex:1;min-width:0}
+.brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anchor-icon{width:26px;height:26px;color:var(--accent);flex:none}
+.hud-right{display:flex;align-items:center;gap:8px}
+.score-box{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 14px 6px 10px;
+  color:#fff;font-weight:800;font-size:1rem}
+.star-ico{width:18px;height:18px}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.22);color:#fff;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.topbar-progress{max-width:980px;margin:9px auto 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.progress-track{flex:1;min-width:140px;height:14px;border-radius:999px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);overflow:hidden}
+.progress-fill{height:100%;width:0%;border-radius:999px;
+  background:linear-gradient(90deg,#2ec4b6,#7bdff2 55%,#f4b860);transition:width .5s ease}
+.progress-meta{color:#bfe6f5;font-size:.85rem;font-weight:700;display:flex;gap:8px;white-space:nowrap}
+.dot{opacity:.5}
+main#game{max-width:880px;margin:0 auto;padding:26px 16px 200px;position:relative;z-index:2}
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.card{position:relative;background:linear-gradient(160deg,#fff 0%,var(--card) 45%,var(--card2) 100%);
+  border-radius:26px;padding:26px 24px;border:2px solid rgba(255,255,255,.85);
+  box-shadow:0 18px 40px rgba(2,18,30,.45),inset 0 1px 0 rgba(255,255,255,.9);overflow:hidden}
+.card::before{content:"";position:absolute;inset:9px;border-radius:19px;
+  border:1px dashed rgba(11,93,138,.22);pointer-events:none}
+h1,h2,h3{margin:0 0 12px;color:var(--primary-d);line-height:1.2}
+h1{font-size:clamp(1.5rem,4.6vw,2.15rem)}
+h2{font-size:clamp(1.2rem,3.6vw,1.6rem)}
+p{margin:0 0 14px;line-height:1.55}
+.btn{font-family:inherit;font-size:1.02rem;font-weight:800;padding:14px 30px;border-radius:999px;
+  border:none;cursor:pointer;background:linear-gradient(180deg,#ffd18a,#f0a23f);color:#06283a;
+  box-shadow:0 6px 0 #b06f1e,0 12px 22px rgba(0,0,0,.3);
+  transition:transform .12s,box-shadow .12s,filter .12s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px}
+.btn:hover:not(.locked){filter:brightness(1.06)}
+.btn:active:not(.locked){transform:translateY(4px);box-shadow:0 2px 0 #b06f1e,0 6px 14px rgba(0,0,0,.3)}
+.btn.secondary{background:linear-gradient(180deg,#eef9fe,#c9e7f3);color:#083a55;
+  box-shadow:0 6px 0 #8fb9cc,0 12px 22px rgba(0,0,0,.25)}
+.btn.locked{background:linear-gradient(180deg,#9aa9b3,#7c8b95);color:#eef3f6;cursor:not-allowed;
+  box-shadow:0 6px 0 #5d6b74;opacity:.9}
+.btn.small{padding:10px 20px;font-size:.92rem;min-height:44px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.start-card{text-align:center;padding-top:34px}
+.start-emblem{width:120px;height:120px;margin:0 auto 14px;display:flex;align-items:center;
+  justify-content:center;border-radius:50%;background:radial-gradient(circle at 35% 28%,#2ec4b6,#0b5d8a 70%);
+  box-shadow:0 12px 30px rgba(6,54,79,.5),inset 0 3px 0 rgba(255,255,255,.35)}
+.start-emblem svg{width:70px;height:70px;color:#fdf3df}
+.legend{background:linear-gradient(180deg,#eaf7fc,#d8eef8);border:1px dashed rgba(11,93,138,.35);
+  border-radius:18px;padding:16px 18px;margin:16px 0 4px;font-size:.98rem;color:#0b3a54}
+.legend b{color:var(--primary)}
+.start-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 4px}
+.tag{background:#e2f3fa;border:1px solid #a9d7e9;color:#0b4a6b;border-radius:999px;
+  padding:6px 14px;font-size:.83rem;font-weight:700}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.level{position:relative;background:linear-gradient(180deg,#fff,#ddeff8);border:2px solid #a9d7e9;
+  border-radius:20px;padding:18px 10px 14px;cursor:pointer;text-align:center;
+  transition:.18s;color:var(--text);font-family:inherit;box-shadow:0 6px 0 #b6d9e7}
+.level:hover:not(.closed){transform:translateY(-4px);border-color:var(--accent);box-shadow:0 10px 0 #d8a44d}
+.level.closed{background:linear-gradient(180deg,#dfe8ec,#c5d2d9);border-color:#aebcc4;
+  cursor:not-allowed;box-shadow:0 6px 0 #9aa9b3;color:#5f6f79}
+.level .lv-num{font-size:1.5rem;font-weight:900;color:var(--primary)}
+.level.closed .lv-num{color:#77878f}
+.level .lv-name{font-size:.86rem;font-weight:800;margin-top:2px;text-transform:uppercase;letter-spacing:.6px}
+.level .lv-stars{margin-top:8px;font-size:1.05rem;letter-spacing:2px;color:#e0a63b}
+.level.closed .lv-stars{color:#9fb0b8}
+.lock-badge{position:absolute;top:-10px;right:-8px;width:32px;height:32px;border-radius:50%;
+  background:#77878f;color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.3);font-size:.95rem}
+.quiz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin-bottom:6px;flex-wrap:wrap}
+.level-tag{background:#0b5d8a;color:#eaf7fc;border-radius:999px;padding:6px 16px;
+  font-size:.82rem;font-weight:800;letter-spacing:.4px}
+.timer{display:flex;align-items:center;gap:6px;background:#e8f6fd;border:2px solid #a9d7e9;
+  border-radius:999px;padding:5px 14px;font-weight:900;color:#0b5d8a;font-size:1rem;
+  min-width:78px;justify-content:center;transition:.25s}
+.timer.warn{background:#fde8e0;border-color:#e9a489;color:#b64a24;animation:pulse .8s infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.question{font-size:clamp(1.08rem,3.2vw,1.35rem);margin:14px 0 18px;color:#08344c;line-height:1.4}
+.options{display:grid;gap:10px}
+.option{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:linear-gradient(180deg,#fff,#e7f4fa);border:2px solid #bfe0ee;border-radius:16px;
+  padding:14px 18px;font-family:inherit;font-size:1rem;font-weight:700;color:#0a2e44;
+  cursor:pointer;transition:.16s;box-shadow:0 4px 0 #b9d8e6}
+.option .lbl{flex:1}
+.option:hover:not(.disabled){transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 0 #d8a44d}
+.option.disabled{cursor:default}
+.option.correct{border-color:var(--ok);background:linear-gradient(180deg,#e6f9ef,#c9efdb);box-shadow:0 4px 0 #7fcaa3}
+.option.wrong{border-color:var(--err);background:linear-gradient(180deg,#fde9ec,#f8ccd3);box-shadow:0 4px 0 #e59aa5}
+.option .mark{margin-left:auto;font-weight:900;font-size:.9rem;white-space:nowrap}
+.option .mark.ok{color:var(--ok)}
+.option .mark.no{color:var(--err)}
+.feedback{margin-top:16px;padding:14px 16px;border-radius:16px;border:2px solid;
+  font-size:.97rem;line-height:1.5;animation:fadeUp .3s ease}
+.feedback.ok{background:var(--ok-bg);border-color:#8fd6b0;color:#14603f}
+.feedback.no{background:var(--err-bg);border-color:#efa4ae;color:#8f2233}
+.feedback .fb-title{font-weight:900;display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:1.05rem}
+.fill-task{background:linear-gradient(180deg,#fff,#e9f5fb);border:2px solid #c4e3ef;
+  border-radius:18px;padding:14px 16px;margin-bottom:14px;box-shadow:0 4px 0 #c4e3ef;transition:.2s}
+.fill-task.correct{border-color:var(--ok);box-shadow:0 4px 0 #7fcaa3}
+.fill-task.wrong{border-color:var(--err);box-shadow:0 4px 0 #e59aa5}
+.fill-options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{font-family:inherit;font-size:.9rem;font-weight:700;padding:8px 16px;border-radius:999px;
+  cursor:pointer;background:#eaf6fc;border:2px solid #b6dcec;color:#0b4a6b;transition:.15s}
+.chip:hover:not(.disabled){background:#d5eefa;border-color:var(--accent)}
+.chip.selected{background:linear-gradient(180deg,#ffd18a,#f0a23f);border-color:#c98a22;
+  color:#06283a;box-shadow:0 3px 0 #b06f1e}
+.chip.correct{background:linear-gradient(180deg,#d4f5e3,#aee8c8);border-color:var(--ok);
+  color:#12603e;box-shadow:0 3px 0 #7fcaa3}
+.chip.wrong{background:linear-gradient(180deg,#fbdde2,#f5c2ca);border-color:var(--err);
+  color:#8f2233;box-shadow:0 3px 0 #e59aa5}
+.chip.disabled{cursor:default}
+.fill-text{font-size:1.02rem;line-height:1.6;margin:0;color:#0a2e44}
+.blank{display:inline-block;min-width:96px;text-align:center;border-bottom:3px dashed #7fb6cf;
+  color:#0b5d8a;font-weight:900;padding:0 6px;margin:0 2px;transition:.2s}
+.blank.filled{border-bottom-style:solid;border-bottom-color:#f0a23f;color:#b06f1e}
+.blank.correct{border-bottom-color:var(--ok);color:var(--ok)}
+.blank.wrong{border-bottom-color:var(--err);color:var(--err)}
+.task-tag{display:inline-block;background:#0b5d8a;color:#eaf7fc;border-radius:999px;
+  padding:5px 14px;font-size:.8rem;font-weight:800;margin-bottom:8px;letter-spacing:.4px}
+.hint{color:#5d8199;font-size:.92rem;font-weight:700}
+.odd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-top:8px}
+.odd-item{font-family:inherit;font-size:1rem;font-weight:800;padding:18px 12px;border-radius:16px;
+  cursor:pointer;background:linear-gradient(180deg,#fff,#e7f4fa);border:2px solid #bfe0ee;
+  color:#0a2e44;box-shadow:0 4px 0 #b9d8e6;transition:.18s;text-align:center;line-height:1.25}
+.odd-item:hover:not(.solved):not(.dimmed){transform:translateY(-3px);border-color:var(--accent);box-shadow:0 7px 0 #d8a44d}
+.odd-item.correct{border-color:var(--ok);background:linear-gradient(180deg,#e6f9ef,#c9efdb);box-shadow:0 4px 0 #7fcaa3}
+.odd-item.wrong{border-color:var(--err);background:linear-gradient(180deg,#fde9ec,#f8ccd3);box-shadow:0 4px 0 #e59aa5}
+.odd-item.dimmed{opacity:.4;filter:saturate(.4);cursor:default}
+.odd-item.solved{cursor:default}
+.stars-row{display:flex;justify-content:center;gap:8px;font-size:2.4rem;margin:14px 0 8px;line-height:1}
+.stars-row .st{color:#c9d6dd;display:inline-block;transition:.3s}
+.stars-row .st.on{color:#f4b860;text-shadow:0 0 16px rgba(244,184,96,.8);
+  animation:pop .45s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{0%{transform:scale(0) rotate(-45deg)}100%{transform:scale(1) rotate(0)}}
+.summary-card{text-align:center}
+.summary-badge{display:inline-block;background:#0b5d8a;color:#eaf7fc;border-radius:999px;
+  padding:6px 18px;font-weight:800;font-size:.85rem;margin-bottom:12px;letter-spacing:.5px}
+.summary-stats{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin:16px 0}
+.summary-stats .st{display:flex;flex-direction:column;align-items:center}
+.summary-stats .st b{font-size:1.7rem;color:var(--primary)}
+.summary-stats .st small{color:#5d8199;font-weight:700;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.5px}
+.final-card{text-align:center}
+.final-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}
+.stat{background:linear-gradient(180deg,#eaf7fc,#d6edf7);border:2px solid #b6dcec;
+  border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center}
+.stat span{font-size:1.55rem;font-weight:900;color:var(--primary);line-height:1}
+.stat small{font-size:.72rem;font-weight:800;color:#5d8199;text-transform:uppercase;
+  letter-spacing:.4px;margin-top:4px}
+.next-award{background:#fff6e6;border:2px dashed #f0c47a;border-radius:14px;
+  padding:12px 14px;color:#8a5a12;font-weight:700;font-size:.94rem}
+.ronie-bar{position:fixed;bottom:0;left:0;right:0;z-index:40;padding:14px 16px 22px;
+  pointer-events:none;background:linear-gradient(180deg,rgba(4,34,47,0),rgba(4,34,47,.82) 55%)}
+.ronie-bar-inner{max-width:880px;margin:0 auto;display:flex;align-items:flex-end;
+  gap:12px;pointer-events:auto}
+.ronie{flex:none;width:84px;height:84px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.ronie-svg{width:100%;height:100%;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.speech{flex:1;position:relative;background:rgba(255,255,255,.96);border:2px solid #b9dcec;
+  border-radius:18px;padding:12px 16px;font-size:.93rem;font-weight:700;color:#0b3a54;
+  box-shadow:0 8px 20px rgba(2,18,30,.3);min-height:54px;display:flex;align-items:center}
+.speech::before{content:"";position:absolute;left:-11px;bottom:18px;width:0;height:0;
+  border-top:9px solid transparent;border-bottom:9px solid transparent;border-right:11px solid #b9dcec}
+.speech.bump{animation:speechBump .35s ease}
+@keyframes speechBump{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:900;overflow:hidden}
+.toast{position:fixed;left:50%;bottom:200px;transform:translateX(-50%) translateY(18px);
+  background:#0b3d59;color:#eaf7fc;padding:11px 20px;border-radius:999px;font-weight:800;
+  font-size:.92rem;opacity:0;pointer-events:none;transition:.28s;z-index:950;
+  border:1px solid rgba(160,230,255,.35);box-shadow:0 10px 26px rgba(0,0,0,.4);
+  max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:rgba(2,18,30,.78);display:flex;
+  align-items:center;justify-content:center;padding:18px;z-index:960;backdrop-filter:blur(5px)}
+.modal[hidden]{display:none}
+.modal-card{background:linear-gradient(160deg,#fff,#e9f5fb);border-radius:22px;
+  padding:22px;max-width:560px;width:100%;max-height:82vh;overflow:auto;
+  border:2px solid rgba(255,255,255,.9);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-card h3{margin-bottom:14px}
+.mistake-item{background:#fff5f6;border-left:5px solid var(--err);border-radius:12px;
+  padding:10px 14px;margin-bottom:10px;font-size:.92rem;line-height:1.5}
+.mistake-item b{color:#8f2233}
+.mistake-item .ans{color:var(--ok);font-weight:800}
+.mistake-item .stg{font-size:.72rem;font-weight:800;color:#5d8199;
+  text-transform:uppercase;letter-spacing:.5px}
+.shake{animation:shakeAnim .5s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shakeAnim{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}
+  30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+@media (max-width:640px){
+  main#game{padding:18px 12px 210px}
+  .card{padding:20px 16px;border-radius:22px}
+  .levels{grid-template-columns:1fr;gap:10px}
+  .level{display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px}
+  .level .lv-stars{margin-top:0;margin-left:auto}
+  .lock-badge{position:static;margin-left:8px}
+  .final-stats{grid-template-columns:repeat(2,1fr)}
+  .btn{padding:13px 22px;font-size:.98rem;width:100%}
+  .actions{flex-direction:column}
+  .ronie{width:68px;height:68px}
+  .speech{font-size:.86rem;padding:10px 13px}
+  .brand span{font-size:.9rem}
+  .progress-meta{font-size:.78rem}
+  .stars-row{font-size:2rem}
+  .odd-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="bubbles" id="bubbles" aria-hidden="true"></div>
+<svg class="sea-waves" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0,120 C240,60 480,180 720,120 C960,60 1200,180 1440,120 L1440,220 L0,220 Z" fill="#0b4f6c" opacity=".45"/>
+  <path d="M0,150 C300,90 540,200 720,150 C960,90 1200,200 1440,150 L1440,220 L0,220 Z" fill="#073a56" opacity=".7"/>
+  <path d="M0,180 C300,140 600,220 900,180 C1140,150 1300,200 1440,180 L1440,220 L0,220 Z" fill="#04222f"/>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-main">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" class="anchor-icon" aria-hidden="true"><path d="M12 2a2.2 2.2 0 0 0-2.2 2.2c0 1 .7 1.9 1.6 2.1V8H8.5v2h2.9v8.7c-3-.5-5.4-2.9-5.6-6H7L5 10 3 12.7h1.2c.3 4.2 3.8 7.3 7.8 7.3s7.5-3.1 7.8-7.3H21L19 10l-2 2.7h1.2c-.2 3.1-2.6 5.5-5.6 6V10h2.9V8h-2.9V6.3c.9-.2 1.6-1.1 1.6-2.1A2.2 2.2 0 0 0 12 2Z" fill="currentColor"/></svg>
+      <span>Морское путешествие</span>
+    </div>
+    <div class="hud-right">
+      <div class="score-box" title="Баллы">
+        <svg viewBox="0 0 24 24" class="star-ico" aria-hidden="true"><path d="m12 2 3 6.6 7 .9-5.2 4.8 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.5l7-.9L12 2Z" fill="#f4b860"/></svg>
+        <span id="scoreValue">0</span>
+      </div>
+      <button class="icon-btn" id="soundBtn" aria-label="Звук" title="Звук">🔊</button>
+    </div>
+  </div>
+  <div class="topbar-progress">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-meta">
+      <span id="counterDone">Выполнено: 0</span>
+      <span class="dot">•</span>
+      <span id="counterLeft">Осталось: 27</span>
+    </div>
+  </div>
+</header>
+
+<main id="game">
+
+<section class="screen active" id="screen-start">
+  <div class="card start-card">
+    <div class="start-emblem">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a2.2 2.2 0 0 0-2.2 2.2c0 1 .7 1.9 1.6 2.1V8H8.5v2h2.9v8.7c-3-.5-5.4-2.9-5.6-6H7L5 10 3 12.7h1.2c.3 4.2 3.8 7.3 7.8 7.3s7.5-3.1 7.8-7.3H21L19 10l-2 2.7h1.2c-.2 3.1-2.6 5.5-5.6 6V10h2.9V8h-2.9V6.3c.9-.2 1.6-1.1 1.6-2.1A2.2 2.2 0 0 0 12 2Z" fill="currentColor"/></svg>
+    </div>
+    <h1>Морское путешествие</h1>
+    <p style="font-size:1.05rem;color:#0b4a6b;font-weight:700">Тема: Мировой океан · География · 6 класс</p>
+    <div class="legend">
+      <b>Легенда:</b> капитан Рони приглашает тебя в плавание по Мировому океану.
+      Тебя ждут три испытания: викторина на карте уровней, вставь пропущенное слово
+      и найди лишнее. Собирай баллы и звёзды — впереди финальный остров!
+    </div>
+    <div class="start-tags">
+      <span class="tag">3 этапа</span>
+      <span class="tag">27 заданий</span>
+      <span class="tag">Рони-помощник</span>
+      <span class="tag">Звёзды и баллы</span>
+    </div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn" id="startBtn" type="button">Начать путешествие</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-map">
+  <div class="card">
+    <h2>Этап 1. Карта уровней</h2>
+    <p>Ответь на вопросы викторины. Следующий уровень откроется, если наберёшь <b>не меньше 70%</b>.</p>
+    <div class="levels" id="levelsWrap"></div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn secondary small" id="mapToStart" type="button">К началу</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-quiz">
+  <div class="card">
+    <div class="quiz-head">
+      <span class="level-tag" id="quizLevelTag">Уровень 1 · Лёгкий</span>
+      <span class="timer" id="quizTimer">30 с</span>
+    </div>
+    <h2 class="question" id="quizQuestion">Вопрос</h2>
+    <div class="options" id="quizOptions"></div>
+    <div class="feedback" id="quizFeedback" hidden></div>
+    <div class="actions">
+      <button class="btn locked" id="quizNext" type="button">Дальше</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-level-result">
+  <div class="card summary-card">
+    <span class="summary-badge" id="lrBadge">Уровень 1</span>
+    <h2 id="lrTitle">Уровень пройден!</h2>
+    <div class="stars-row" id="lrStars"></div>
+    <p id="lrText"></p>
+    <div class="actions" style="justify-content:center">
+      <button class="btn secondary" id="lrRetry" type="button">Пройти снова</button>
+      <button class="btn locked" id="lrNext" type="button">К карте уровней</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-summary">
+  <div class="card summary-card">
+    <span class="summary-badge" id="sumBadge">Этап</span>
+    <h2 id="sumTitle">Этап пройден!</h2>
+    <div class="stars-row" id="sumStars"></div>
+    <p id="sumSub"></p>
+    <div class="summary-stats" id="sumStats"></div>
+    <div class="actions" style="justify-content:center">
+      <button class="btn" id="sumNext" type="button">Продолжить</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-fill">
+  <div class="card">
+    <span class="task-tag">Этап 2 · Вставь слово</span>
+    <h2>Заполни пропуски</h2>
+    <p>Выбери подходящее слово над каждым текстом. Когда заполнишь все шесть, нажми «Проверить».</p>
+    <div id="fillTasks"></div>
+    <div class="feedback" id="fillFeedback" hidden></div>
+    <div class="actions">
+      <button class="btn secondary" id="fillClear" type="button">Очистить</button>
+      <button class="btn" id="fillCheck" type="button">Проверить</button>
+      <button class="btn locked" id="fillNext" type="button">Дальше</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-odd">
+  <div class="card">
+    <span class="task-tag" id="oddTag">Этап 3 · Задание 1 из 6</span>
+    <h2>Найди лишнее</h2>
+    <p class="hint">Один элемент не подходит к остальным. Нажми на него.</p>
+    <div class="odd-grid" id="oddItems"></div>
+    <div class="feedback" id="oddFeedback" hidden></div>
+    <div class="actions">
+      <button class="btn locked" id="oddNext" type="button">Дальше</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-final">
+  <div class="card final-card">
+    <h2 style="font-size:clamp(1.5rem,5vw,2rem)">Миссия выполнена!</h2>
+    <div class="stars-row" id="finalStars"></div>
+    <p id="finalMessage"></p>
+    <div class="final-stats">
+      <div class="stat"><span id="finalScore">0</span><small>баллов</small></div>
+      <div class="stat"><span id="finalCorrect">0</span><small>верных</small></div>
+      <div class="stat"><span id="finalWrong">0</span><small>ошибок</small></div>
+      <div class="stat"><span id="finalStarsCount">0</span><small>звёзд</small></div>
+    </div>
+    <p class="next-award" id="finalNextAward"></p>
+    <div class="actions" style="justify-content:center">
+      <button class="btn" id="playAgain" type="button">Играть снова</button>
+      <button class="btn secondary" id="showMistakes" type="button">Посмотреть ошибки</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="ronie-bar">
+  <div class="ronie-bar-inner">
+    <div class="ronie">
+      <svg viewBox="0 0 120 120" class="ronie-svg" aria-hidden="true">
+        <ellipse cx="60" cy="98" rx="31" ry="19" fill="#c98a52"/>
+        <ellipse cx="60" cy="60" rx="31" ry="30" fill="#e0a86b"/>
+        <ellipse cx="31" cy="54" rx="12" ry="21" fill="#a86b3c" transform="rotate(-18 31 54)"/>
+        <ellipse cx="89" cy="54" rx="12" ry="21" fill="#a86b3c" transform="rotate(18 89 54)"/>
+        <ellipse cx="60" cy="72" rx="19" ry="15" fill="#f7dcbb"/>
+        <circle cx="49" cy="55" r="4.3" fill="#2b1a10"/>
+        <circle cx="71" cy="55" r="4.3" fill="#2b1a10"/>
+        <circle cx="50.6" cy="53.4" r="1.5" fill="#fff"/>
+        <circle cx="72.6" cy="53.4" r="1.5" fill="#fff"/>
+        <ellipse cx="60" cy="65" rx="5.4" ry="4.2" fill="#3a2416"/>
+        <path d="M54 73 Q60 79 66 73" stroke="#3a2416" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M57 75 Q60 83 63 75" fill="#f27a8a"/>
+        <rect x="41" y="86" width="38" height="9" rx="4.5" fill="#0b5d8a"/>
+        <circle cx="60" cy="90.5" r="4.2" fill="#f4b860"/>
+        <path d="M57 90.5 h6 M60 87.5 v6" stroke="#0b3d59" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="speech" id="ronieSpeech">Привет! Я Рони, твой помощник. Готов отправиться в плавание?</div>
+  </div>
+</div>
+
+<div id="confetti" aria-hidden="true"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<div class="modal" id="mistakesModal" hidden>
+  <div class="modal-card">
+    <h3>Мои ошибки</h3>
+    <div id="mistakesList"></div>
+    <div class="actions" style="justify-content:flex-end">
+      <button class="btn secondary small" id="closeMistakes" type="button">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var TOTAL = 27;
+
+var QUIZ = {
+  1:{ name:'Лёгкий', questions:[
+    { q:'Какой океан самый большой на Земле?',
+      options:['Атлантический','Тихий','Индийский','Северный Ледовитый'], correct:1,
+      explain:'Тихий океан занимает почти треть поверхности Земли — он самый большой.' },
+    { q:'Какая вода в Мировом океане?',
+      options:['Пресная','Солёная','Сладкая','Кипячёная'], correct:1,
+      explain:'В океанской воде растворено много солей, поэтому она солёная.' },
+    { q:'Как называется самая глубокая впадина на Земле?',
+      options:['Марианская','Байкальская','Японская','Перуанская'], correct:0,
+      explain:'Марианская впадина в Тихом океане — глубочайшее место на планете.' },
+    { q:'Какой океан самый маленький?',
+      options:['Тихий','Атлантический','Индийский','Северный Ледовитый'], correct:3,
+      explain:'Северный Ледовитый океан — самый маленький и самый холодный.' },
+    { q:'Что такое остров?',
+      options:['Гора в океане','Участок суши, окружённый водой','Часть материка','Песчаная коса'], correct:1,
+      explain:'Остров со всех сторон окружён водой.' }
+  ]},
+  2:{ name:'Средний', questions:[
+    { q:'Какое море самое солёное?',
+      options:['Чёрное','Балтийское','Красное','Каспийское'], correct:2,
+      explain:'Красное море — одно из самых солёных морей на планете.' },
+    { q:'Средняя солёность вод Мирового океана примерно...',
+      options:['35 промилле','5 промилле','100 промилле','1 промилле'], correct:0,
+      explain:'В среднем в литре океанской воды около 35 граммов солей.' },
+    { q:'Как называется тёплое течение в Атлантическом океане?',
+      options:['Куросио','Ломоносова','Западных Ветров','Гольфстрим'], correct:3,
+      explain:'Гольфстрим — знаменитое тёплое течение Атлантики.' },
+    { q:'Что такое цунами?',
+      options:['Обычный прилив','Гигантская волна от подводного землетрясения','Штормовой ветер','Морской бриз'], correct:1,
+      explain:'Цунами возникает из-за подводных землетрясений или извержений.' },
+    { q:'Какая наука изучает океаны?',
+      options:['Геология','Ботаника','Океанология','Астрономия'], correct:2,
+      explain:'Океанология изучает воды Мирового океана, их свойства и обитателей.' }
+  ]},
+  3:{ name:'Сложный', questions:[
+    { q:'Какое море не имеет берегов?',
+      options:['Саргассово','Чёрное','Красное','Средиземное'], correct:0,
+      explain:'Саргассово море ограничено течениями, а не сушей.' },
+    { q:'Какую часть гидросферы составляет Мировой океан?',
+      options:['Около 50%','Около 70%','Около 20%','Около 96%'], correct:3,
+      explain:'Мировой океан — это около 96% всей воды гидросферы.' },
+    { q:'Как называется прибор для измерения глубины?',
+      options:['Барометр','Эхолот','Компас','Секстант'], correct:1,
+      explain:'Эхолот измеряет глубину с помощью звуковых волн.' },
+    { q:'Какое течение считается самым мощным в Мировом океане?',
+      options:['Гольфстрим','Куросио','Течение Западных Ветров','Мозамбикское'], correct:2,
+      explain:'Течение Западных Ветров опоясывает Антарктиду и переносит огромные массы воды.' },
+    { q:'Что такое шельф?',
+      options:['Глубоководный жёлоб','Мелководная часть океана у берега материка','Срединно-океанический хребет','Коралловый риф'], correct:1,
+      explain:'Шельф — затопленная окраина материка с глубинами до 200 метров.' }
+  ]}
+};
+
+var FILL = [
+  { before:'Самый солёный океан — ', after:', его воды содержат больше всего солей.',
+    options:['Атлантический','Тихий','Индийский','Северный Ледовитый'], correct:'Атлантический',
+    explain:'В Атлантическом океане больше всего солей: он теплее, и вода сильнее испаряется.' },
+  { before:'Больше всего пресной воды на Земле хранится в ', after:'.',
+    options:['ледниках','морях','облаках','реках'], correct:'ледниках',
+    explain:'Главный запас пресной воды планеты — ледники Антарктиды, Гренландии и Арктики.' },
+  { before:'Волны на поверхности океана чаще всего поднимает ', after:'.',
+    options:['ветер','Луна','рыбы','землетрясение'], correct:'ветер',
+    explain:'Обычные волны создаёт ветер, а цунами рождают подводные землетрясения.' },
+  { before:'Приливы и отливы в Мировом океане вызывает притяжение ', after:'.',
+    options:['Луны','Солнца','ветра','льдов'], correct:'Луны',
+    explain:'Главная причина приливов — притяжение Луны, Солнце влияет слабее.' },
+  { before:'Самое глубокое место океана — ', after:' впадина.',
+    options:['Марианская','Байкальская','Перуанская','Японская'], correct:'Марианская',
+    explain:'Марианская впадина в Тихом океане глубже 11 километров.' },
+  { before:'Течение Гольфстрим несёт ', after:' воду и согревает берега Европы.',
+    options:['тёплую','холодную','солёную','пресную'], correct:'тёплую',
+    explain:'Гольфстрим — тёплое течение, поэтому зимы в Западной Европе мягкие.' }
+];
+
+var ODD = [
+  { items:['Тихий','Атлантический','Индийский','Северный Ледовитый','Каспийское'], odd:4,
+    explain:'Каспийское — это озеро, а остальные четыре — океаны.' },
+  { items:['Чёрное','Красное','Средиземное','Балтийское','Гольфстрим'], odd:4,
+    explain:'Гольфстрим — это течение, а остальные — моря.' },
+  { items:['Волна','Прилив','Отлив','Цунами','Эхолот'], odd:4,
+    explain:'Эхолот — прибор для измерения глубины, остальное — движения воды.' },
+  { items:['Гольфстрим','Куросио','Мозамбикское','Западных Ветров','Марианская'], odd:4,
+    explain:'Марианская — это впадина, а остальные — течения.' },
+  { items:['Гидросфера','Атмосфера','Литосфера','Биосфера','Мировой океан'], odd:4,
+    explain:'Мировой океан — часть гидросферы, а остальные — оболочки Земли.' },
+  { items:['Прилив','Отлив','Цунами','Волна','Пролив'], odd:4,
+    explain:'Пролив — это часть океана, а остальное — движения воды.' }
+];
+
+var RONIE_OK = ['Отлично! Ты настоящий мореплаватель!','Верно! Ещё одна бухта открыта.','Так держать, капитан!','Точно в цель! Волны аплодируют.'];
+var RONIE_NO = ['Почти! Не переживай, у всех бывают штормы.','Ошибка — тоже путь к знанию. Попробуем ещё!','Ничего страшного, я рядом.','Спокойно, капитан, разберёмся вместе.'];
+
+var S = {
+  score:0, correct:0, wrong:0, timeouts:0,
+  done:{}, mistakes:{}, sound:true,
+  s1:{ unlocked:1, stars:{1:0,2:0,3:0}, passed:{1:false,2:false,3:false},
+       lvl:1, qi:0, ok:0, bad:0, answered:false, time:30, tid:null },
+  s2:{ answers:{}, checked:false, correctCount:0 },
+  s3:{ i:0, solved:false }
+};
+
+function $(id){ return document.getElementById(id); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+function showScreen(id){
+  var all = document.querySelectorAll('.screen');
+  for(var i=0;i<all.length;i++) all[i].classList.toggle('active', all[i].id === id);
+  window.scrollTo(0,0);
+}
+
+function toast(txt){
+  var t = $('toast'); t.textContent = txt; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+}
+
+function setRonie(txt){
+  var el = $('ronieSpeech'); if(!el) return;
+  el.textContent = txt; el.classList.remove('bump');
+  void el.offsetWidth; el.classList.add('bump');
+}
+
+function shake(el){
+  if(!el) return; el.classList.remove('shake'); void el.offsetWidth;
+  el.classList.add('shake');
+  setTimeout(function(){ el.classList.remove('shake'); }, 600);
+}
+
+/* --- звук --- */
+var actx = null;
+function AC(){
+  if(!actx){
+    var C = window.AudioContext || window.webkitAudioContext;
+    if(!C) return null;
+    try { actx = new C(); } catch(e){ return null; }
+  }
+  if(actx.state === 'suspended'){ try { actx.resume(); } catch(e){} }
+  return actx;
+}
+function tone(f, start, dur, type, gain){
+  if(!S.sound) return;
+  var c = AC(); if(!c) return;
+  try{
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine'; o.frequency.value = f;
+    o.connect(g); g.connect(c.destination);
+    var t0 = c.currentTime + start;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain || 0.12, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.start(t0); o.stop(t0 + dur + 0.03);
+  } catch(e){}
+}
+function sndOK(){ tone(660,0,.14,'sine',.13); tone(880,.10,.16,'sine',.12); tone(1180,.22,.22,'sine',.10); }
+function sndNO(){ tone(220,0,.18,'triangle',.12); tone(165,.16,.26,'triangle',.10); }
+function sndClick(){ tone(560,0,.06,'square',.05); }
+
+function speak(text){
+  if(!S.sound || !('speechSynthesis' in window)) return;
+  try{
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ru-RU'; u.rate = 1.0; u.pitch = 1.1; u.volume = 0.9;
+    window.speechSynthesis.speak(u);
+  } catch(e){}
+}
+
+/* --- конфетти --- */
+function confetti(){
+  var w = $('confetti'); if(!w) return;
+  var colors = ['#f4b860','#2ec4b6','#e07a5f','#7bdff2','#ffffff'];
+  for(var i=0;i<24;i++){
+    var d = document.createElement('div');
+    var wi = 7 + Math.random()*6, he = 10 + Math.random()*8;
+    d.style.cssText = 'position:absolute;width:'+wi+'px;height:'+he+'px;left:'+
+      (Math.random()*100)+'%;top:-20px;background:'+colors[i%colors.length]+
+      ';border-radius:2px;opacity:.95';
+    w.appendChild(d);
+    var dur = 650 + Math.random()*350;
+    var x = (Math.random()-0.5)*180;
+    var rot = Math.random()*720-360;
+    try{
+      var an = d.animate(
+        [{transform:'translate(0,0) rotate(0)', opacity:1},
+         {transform:'translate('+x+'px,'+(window.innerHeight*0.8)+'px) rotate('+rot+'deg)', opacity:0}],
+        {duration: dur, easing:'ease-out'}
+      );
+      an.onfinish = (function(el){ return function(){ if(el.parentNode) el.parentNode.removeChild(el); }; })(d);
+    } catch(e){
+      setTimeout((function(el){ return function(){ if(el.parentNode) el.parentNode.removeChild(el); }; })(d), dur);
+    }
+  }
+}
+
+function setStars(el, n){
+  if(!el) return;
+  el.innerHTML = '';
+  for(var i=0;i<3;i++){
+    var s = document.createElement('span');
+    s.className = 'st' + (i<n ? ' on' : '');
+    s.textContent = '★';
+    el.appendChild(s);
+  }
+}
+
+function updateHUD(){
+  var doneN = Object.keys(S.done).length;
+  $('scoreValue').textContent = S.score;
+  $('progressFill').style.width = (doneN / TOTAL * 100) + '%';
+  $('counterDone').textContent = 'Выполнено: ' + doneN;
+  $('counterLeft').textContent = 'Осталось: ' + (TOTAL - doneN);
+}
+
+function markDone(key){
+  if(S.done[key]) return;
+  S.done[key] = true;
+  updateHUD();
+}
+
+function addMistake(key, stage, question, answer){
+  if(S.mistakes[key]) return;
+  S.mistakes[key] = {stage:stage, question:question, answer:answer};
+}
+
+/* =========================================================
+   СБРОС
+   ========================================================= */
+function resetAll(){
+  stopTimer();
+  S.score=0; S.correct=0; S.wrong=0; S.timeouts=0;
+  S.done={}; S.mistakes={};
+  S.s1 = { unlocked:1, stars:{1:0,2:0,3:0}, passed:{1:false,2:false,3:false},
+           lvl:1, qi:0, ok:0, bad:0, answered:false, time:30, tid:null };
+  S.s2 = { answers:{}, checked:false, correctCount:0 };
+  S.s3 = { i:0, solved:false };
+  updateHUD();
+  setRonie('Привет! Я Рони, твой помощник. Готов отправиться в плавание?');
+  showScreen('screen-start');
+}
+
+/* =========================================================
+   ЭТАП 1 — КАРТА
+   ========================================================= */
+function showMap(){
+  var wrap = $('levelsWrap'); wrap.innerHTML = '';
+  for(var n=1;n<=3;n++){
+    (function(level){
+      var unlocked = level <= S.s1.unlocked;
+      var stars = S.s1.stars[level] || 0;
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'level' + (unlocked ? '' : ' closed');
+      var str = '';
+      for(var s=0;s<3;s++) str += (s<stars ? '★' : '☆');
+      el.innerHTML = '<div class="lv-num">'+level+'</div>'+
+        '<div class="lv-name">'+QUIZ[level].name+'</div>'+
+        '<div class="lv-stars">'+str+'</div>'+
+        (unlocked ? '' : '<div class="lock-badge">🔒</div>');
+      el.addEventListener('click', function(){
+        if(unlocked){ sndClick(); startLevel(level); }
+        else { toast('Уровень закрыт. Пройди предыдущий.'); }
+      });
+      wrap.appendChild(el);
+    })(n);
+  }
+  showScreen('screen-map');
+  setRonie('Выбирай уровень на карте. Начни с лёгкого!');
+}
+
+/* =========================================================
+   ВИКТОРИНА
+   ========================================================= */
+function startLevel(n){
+  S.s1.lvl = n; S.s1.qi = 0; S.s1.ok = 0; S.s1.bad = 0;
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  var lvl = S.s1.lvl;
+  var q = QUIZ[lvl].questions[S.s1.qi];
+  S.s1.answered = false;
+  S.s1.time = 30;
+
+  $('quizLevelTag').textContent = 'Уровень ' + lvl + ' · ' + QUIZ[lvl].name;
+  $('quizQuestion').textContent = (S.s1.qi+1) + '. ' + q.q;
+
+  var wrap = $('quizOptions'); wrap.innerHTML = '';
+  for(var i=0;i<q.options.length;i++){
+    (function(idx){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'option';
+      b.innerHTML = '<span class="lbl">'+q.options[idx]+'</span><span class="mark"></span>';
+      b.addEventListener('click', function(){ answerQuiz(idx); });
+      wrap.appendChild(b);
+    })(i);
+  }
+
+  $('quizFeedback').hidden = true;
+  $('quizNext').classList.add('locked');
+  $('quizTimer').classList.remove('warn');
+  startTimer();
+}
+
+function startTimer(){
+  stopTimer();
+  updateTimer();
+  S.s1.tid = setInterval(function(){
+    S.s1.time--;
+    updateTimer();
+    if(S.s1.time <= 0){ stopTimer(); timeoutQuiz(); }
+  }, 1000);
+}
+function stopTimer(){
+  if(S.s1.tid){ clearInterval(S.s1.tid); S.s1.tid = null; }
+}
+function updateTimer(){
+  var el = $('quizTimer');
+  el.textContent = S.s1.time + ' с';
+  if(S.s1.time <= 10) el.classList.add('warn');
+  else el.classList.remove('warn');
+}
+
+function answerQuiz(idx){
+  if(S.s1.answered) return;
+  S.s1.answered = true;
+  stopTimer();
+
+  var lvl = S.s1.lvl;
+  var q = QUIZ[lvl].questions[S.s1.qi];
+  var btns = $('quizOptions').querySelectorAll('.option');
+  var ok = idx === q.correct;
+
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.add('disabled');
+    var mk = btns[i].querySelector('.mark');
+    if(i === q.correct){
+      btns[i].classList.add('correct');
+      mk.textContent = '✓'; mk.classList.add('ok');
+    } else if(i === idx && !ok){
+      btns[i].classList.add('wrong');
+      mk.textContent = '✗'; mk.classList.add('no');
+    }
+  }
+
+  if(ok){
+    S.score++; S.correct++; S.s1.ok++;
+    sndOK(); confetti();
+    setRonie(pick(RONIE_OK)); speak(pick(RONIE_OK));
+    showFb('ok', 'Отлично! ✓', 'Верно! ' + q.explain);
+  } else {
+    S.wrong++; S.s1.bad++;
+    sndNO(); shake($('quizOptions'));
+    setRonie(pick(RONIE_NO));
+    speak('Почти! Правильный ответ: ' + q.options[q.correct]);
+    showFb('no', 'Почти! Попробуй ещё раз. ✗',
+      'Правильный ответ: ' + q.options[q.correct] + '. ' + q.explain);
+    addMistake('s1-'+lvl+'-'+S.s1.qi, 'Этап 1 · Уровень '+lvl, q.q, q.options[q.correct]);
+  }
+
+  markDone('s1-'+lvl+'-'+S.s1.qi);
+  $('quizNext').classList.remove('locked');
+}
+
+function timeoutQuiz(){
+  if(S.s1.answered) return;
+  S.s1.answered = true;
+
+  var lvl = S.s1.lvl;
+  var q = QUIZ[lvl].questions[S.s1.qi];
+  var btns = $('quizOptions').querySelectorAll('.option');
+
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.add('disabled');
+    if(i === q.correct){
+      btns[i].classList.add('correct');
+      var mk = btns[i].querySelector('.mark');
+      mk.textContent = '✓'; mk.classList.add('ok');
+    }
+  }
+
+  S.wrong++; S.timeouts++; S.s1.bad++;
+  sndNO();
+  setRonie('Время вышло, но не расстраивайся!');
+  speak('Время вышло. Правильный ответ: ' + q.options[q.correct]);
+  showFb('no', '⏱ Время вышло!', 'Правильный ответ: ' + q.options[q.correct] + '. ' + q.explain);
+  addMistake('s1-'+lvl+'-'+S.s1.qi, 'Этап 1 · Уровень '+lvl, q.q, q.options[q.correct]);
+  markDone('s1-'+lvl+'-'+S.s1.qi);
+  $('quizNext').classList.remove('locked');
+}
+
+function showFb(kind, title, text){
+  var fb = $('quizFeedback');
+  fb.hidden = false;
+  fb.className = 'feedback ' + kind;
+  fb.innerHTML = '<div class="fb-title">'+title+'</div>'+text;
+}
+
+function quizNext(){
+  S.s1.qi++;
+  var lvl = S.s1.lvl;
+  if(S.s1.qi >= QUIZ[lvl].questions.length){ showLevelResult(lvl); }
+  else { renderQuestion(); }
+}
+
+function showLevelResult(lvl){
+  var total = QUIZ[lvl].questions.length;
+  var ok = S.s1.ok;
+  var pct = ok / total * 100;
+  var stars = 0;
+  if(pct >= 100) stars = 3;
+  else if(pct >= 75) stars = 2;
+  else if(pct >= 50) stars = 1;
+  var passed = pct >= 70;
+
+  if(stars > (S.s1.stars[lvl]||0)) S.s1.stars[lvl] = stars;
+  if(passed){
+    S.s1.passed[lvl] = true;
+    if(lvl < 3 && S.s1.unlocked < lvl+1) S.s1.unlocked = lvl+1;
+  }
+
+  var allPassed = S.s1.passed[1] && S.s1.passed[2] && S.s1.passed[3];
+  var btn = $('lrNext');
+
+  $('lrBadge').textContent = 'Уровень ' + lvl + ' · ' + QUIZ[lvl].name;
+  $('lrTitle').textContent = passed ? 'Уровень пройден!' : 'Уровень не пройден';
+  setStars($('lrStars'), stars);
+  $('lrText').innerHTML = 'Верных ответов: <b>'+ok+' из '+total+'</b> ('+Math.round(pct)+'%). ' +
+    (passed ? 'Отличная работа, капитан!' : 'Нужно не меньше 70% — попробуй ещё!');
+
+  if(allPassed){
+    btn.classList.remove('locked');
+    btn.textContent = 'К итогам этапа';
+  } else if(passed){
+    btn.classList.remove('locked');
+    btn.textContent = 'К карте уровней';
+  } else {
+    btn.classList.add('locked');
+    btn.textContent = 'Нужно 70%';
+  }
+
+  showScreen('screen-level-result');
+  if(passed){ sndOK(); confetti(); setRonie('Уровень пройден! Молодец!'); speak('Уровень пройден! Молодец!'); }
+  else { sndNO(); setRonie('Не сдавайся! Попробуй ещё раз.'); speak('Не сдавайся! Попробуй ещё раз.'); }
+}
+
+/* =========================================================
+   ИТОГ ЭТАПА
+   ========================================================= */
+function showStageSummary(stage){
+  var badge = $('sumBadge');
+  var title = $('sumTitle');
+  var sub = $('sumSub');
+  var stats = $('sumStats');
+  var stars = 0;
+  var nextLabel = '';
+  var correct = 0;
+  var wrong = 0;
+
+  if(stage === 1){
+    correct = S.s1.stars[1]+S.s1.stars[2]+S.s1.stars[3]; /* заглушка, ниже пересчёт */
+    correct = 0;
+    for(var k in S.s1.passed) if(S.s1.passed[k]) correct++;
+    badge.textContent = 'Этап 1';
+    title.textContent = 'Викторина пройдена!';
+    var totalStars = (S.s1.stars[1]||0)+(S.s1.stars[2]||0)+(S.s1.stars[3]||0);
+    stars = totalStars >= 7 ? 3 : totalStars >= 4 ? 2 : 1;
+    sub.textContent = 'Ты прошёл все три уровня викторины. Впереди — «Вставь слово»!';
+    stats.innerHTML =
+      '<div class="st"><b>'+S.s1.stars[1]+'★</b><small>уровень 1</small></div>'+
+      '<div class="st"><b>'+S.s1.stars[2]+'★</b><small>уровень 2</small></div>'+
+      '<div class="st"><b>'+S.s1.stars[3]+'★</b><small>уровень 3</small></div>';
+    nextLabel = 'К этапу 2';
+  } else if(stage === 2){
+    var sc = S.s2.correctCount;
+    stars = sc >= 6 ? 3 : sc >= 5 ? 2 : sc >= 3 ? 1 : 0;
+    badge.textContent = 'Этап 2';
+    title.textContent = sc >= 4 ? 'Пропуски заполнены!' : 'Этап пройден!';
+    sub.textContent = 'Верных пропусков: '+sc+' из 6. Впереди — «Найди лишнее»!';
+    stats.innerHTML =
+      '<div class="st"><b>'+sc+'</b><small>верных</small></div>'+
+      '<div class="st"><b>'+(6-sc)+'</b><small>ошибок</small></div>';
+    nextLabel = 'К этапу 3';
+  } else if(stage === 3){
+    stars = 3;
+    badge.textContent = 'Этап 3';
+    title.textContent = 'Все лишние найдены!';
+    sub.textContent = 'Вот и последний остров! Смотрим общий результат.';
+    stats.innerHTML = '<div class="st"><b>6</b><small>заданий</small></div>';
+    nextLabel = 'К финалу';
+  }
+
+  setStars($('sumStars'), stars);
+  $('sumNext').textContent = nextLabel;
+  showScreen('screen-summary');
+}
+
+/* =========================================================
+   ЭТАП 2 — ВСТАВЬ СЛОВО
+   ========================================================= */
+function renderFill(){
+  var wrap = $('fillTasks'); wrap.innerHTML = '';
+  S.s2.answers = {};
+  S.s2.checked = false;
+  S.s2.correctCount = 0;
+
+  for(var i=0;i<FILL.length;i++){
+    (function(idx){
+      var t = FILL[idx];
+      var box = document.createElement('div');
+      box.className = 'fill-task';
+      box.dataset.idx = idx;
+
+      var opts = document.createElement('div');
+      opts.className = 'fill-options';
+      for(var j=0;j<t.options.length;j++){
+        (function(word){
+          var c = document.createElement('button');
+          c.type = 'button'; c.className = 'chip'; c.textContent = word;
+          c.addEventListener('click', function(){
+            if(S.s2.checked) return;
+            sndClick();
+            S.s2.answers[idx] = word;
+            var chips = opts.querySelectorAll('.chip');
+            for(var k=0;k<chips.length;k++) chips[k].classList.remove('selected');
+            c.classList.add('selected');
+            var blank = box.querySelector('.blank');
+            blank.textContent = word;
+            blank.classList.add('filled');
+          });
+          opts.appendChild(c);
+        })(t.options[j]);
+      }
+      box.appendChild(opts);
+
+      var txt = document.createElement('p');
+      txt.className = 'fill-text';
+      txt.innerHTML = t.before + '<span class="blank">___</span>' + t.after;
+      box.appendChild(txt);
+
+      wrap.appendChild(box);
+    })(i);
+  }
+
+  $('fillFeedback').hidden = true;
+  $('fillCheck').classList.remove('locked');
+  $('fillNext').classList.add('locked');
+  showScreen('screen-fill');
+  setRonie('Выбирай слова над каждым текстом — потом проверим!');
+}
+
+function checkFill(){
+  var answered = 0;
+  for(var k in S.s2.answers) answered++;
+  if(answered < FILL.length){
+    toast('Заполни все шесть пропусков!');
+    return;
+  }
+
+  S.s2.checked = true;
+  var correct = 0;
+  var alreadyScored = S.s2.correctCount > 0;
+
+  for(var i=0;i<FILL.length;i++){
+    var t = FILL[i];
+    var user = S.s2.answers[i];
+    var box = document.querySelector('.fill-task[data-idx="'+i+'"]');
+    var blank = box.querySelector('.blank');
+    var chips = box.querySelectorAll('.chip');
+    var ok = user === t.correct;
+
+    for(var c=0;c<chips.length;c++){
+      chips[c].classList.add('disabled');
+      if(chips[c].textContent === t.correct) chips[c].classList.add('correct');
+      else if(chips[c].textContent === user) chips[c].classList.add('wrong');
+    }
+    if(ok){
+      box.classList.add('correct');
+      blank.classList.add('correct');
+      correct++;
+      var key = 's2-'+i;
+      if(!S.done[key]){
+        S.score++; S.correct++;
+        markDone(key);
+      }
+    } else {
+      box.classList.add('wrong');
+      blank.classList.add('wrong');
+      addMistake('s2-'+i, 'Этап 2 · Пропуск '+(i+1),
+        t.before+'___'+t.after, t.correct);
+      var key2 = 's2-'+i;
+      if(!S.done[key2]){
+        S.wrong++;
+        markDone(key2);
+      }
+    }
+  }
+
+  S.s2.correctCount = correct;
+
+  var fb = $('fillFeedback');
+  fb.hidden = false;
+  if(correct >= 4){
+    fb.className = 'feedback ok';
+    fb.innerHTML = '<div class="fb-title">Отлично! ✓</div>Верных пропусков: '+correct+' из 6. Хорошая работа, капитан!';
+    sndOK(); confetti(); setRonie('Отлично! '+correct+' из 6 — хороший результат!');
+    speak('Верных пропусков '+correct+' из шести. Хорошая работа!');
+  } else {
+    fb.className = 'feedback no';
+    fb.innerHTML = '<div class="fb-title">Почти! ✗</div>Верных пропусков: '+correct+' из 6. Ничего страшного, посмотри правильные варианты.';
+    sndNO(); shake($('fillTasks')); setRonie('Не переживай, посмотри правильные варианты.');
+    speak('Верных пропусков '+correct+' из шести.');
+  }
+
+  $('fillNext').classList.remove('locked');
+}
+
+/* =========================================================
+   ЭТАП 3 — ЛИШНЕЕ
+   ========================================================= */
+function renderOdd(){
+  S.s3.i = 0; S.s3.solved = false;
+  drawOddTask();
+  showScreen('screen-odd');
+  setRonie('Нажми на лишний элемент. Их шесть заданий!');
+}
+
+function drawOddTask(){
+  var task = ODD[S.s3.i];
+  S.s3.solved = false;
+
+  $('oddTag').textContent = 'Этап 3 · Задание ' + (S.s3.i+1) + ' из ' + ODD.length;
+  $('oddFeedback').hidden = true;
+  $('oddNext').classList.add('locked');
+
+  var wrap = $('oddItems'); wrap.innerHTML = '';
+  for(var i=0;i<task.items.length;i++){
+    (function(idx){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'odd-item'; b.textContent = task.items[idx];
+      b.dataset.idx = idx;
+      b.addEventListener('click', function(){ answerOdd(idx, b); });
+      wrap.appendChild(b);
+    })(i);
+  }
+}
+
+function answerOdd(idx, btn){
+  if(S.s3.solved) return;
+  var task = ODD[S.s3.i];
+  var ok = idx === task.odd;
+  var items = $('oddItems').querySelectorAll('.odd-item');
+
+  if(ok){
+    S.s3.solved = true;
+    for(var i=0;i<items.length;i++){
+      if(i === task.odd){ items[i].classList.add('correct'); items[i].classList.add('solved'); }
+      else items[i].classList.add('dimmed');
+    }
+    var key = 's3-'+S.s3.i;
+    if(!S.done[key]){
+      S.score++; S.correct++;
+      markDone(key);
+    }
+    sndOK(); confetti();
+    setRonie(pick(RONIE_OK)); speak(pick(RONIE_OK));
+    var fb = $('oddFeedback');
+    fb.hidden = false; fb.className = 'feedback ok';
+    fb.innerHTML = '<div class="fb-title">Отлично! ✓</div>' + task.explain;
+    $('oddNext').classList.remove('locked');
+  } else {
+    btn.classList.add('wrong');
+    S.wrong++;
+    sndNO(); shake(btn);
+    setRonie(pick(RONIE_NO));
+    speak('Почти! Попробуй ещё раз.');
+    var fb2 = $('oddFeedback');
+    fb2.hidden = false; fb2.className = 'feedback no';
+    fb2.innerHTML = '<div class="fb-title">Почти! Попробуй ещё раз. ✗</div>Этот элемент подходит к остальным. Подумай ещё!';
+  }
+}
+
+function nextOdd(){
+  S.s3.i++;
+  if(S.s3.i >= ODD.length){ showStageSummary(3); }
+  else { drawOddTask(); }
+}
+
+/* =========================================================
+   ФИНАЛ
+   ========================================================= */
+function showFinal(){
+  var totalStars = (S.s1.stars[1]||0)+(S.s1.stars[2]||0)+(S.s1.stars[3]||0);
+  var pct = S.correct / TOTAL * 100;
+  var finalStars = 0;
+  if(pct >= 100) finalStars = 3;
+  else if(pct >= 75) finalStars = 2;
+  else if(pct >= 50) finalStars = 1;
+
+  setStars($('finalStars'), finalStars);
+  $('finalScore').textContent = S.score;
+  $('finalCorrect').textContent = S.correct;
+  $('finalWrong').textContent = S.wrong;
+  $('finalStarsCount').textContent = totalStars;
+
+  var msg = '';
+  if(pct >= 90) msg = 'Превосходно! Ты настоящий капитан Мирового океана!';
+  else if(pct >= 70) msg = 'Отличное плавание! Ты хорошо знаешь океан.';
+  else if(pct >= 50) msg = 'Хороший результат! Есть куда расти.';
+  else msg = 'Ты справился с путешествием! Знания придут с тренировкой.';
+
+  $('finalMessage').textContent = msg;
+
+  var need = 0, target = '';
+  if(finalStars < 3){
+    var nextPct = finalStars === 0 ? 50 : finalStars === 1 ? 75 : 100;
+    var needCorrect = Math.ceil(nextPct * TOTAL / 100) - S.correct;
+    if(needCorrect < 0) needCorrect = 0;
+    need = needCorrect;
+    target = finalStars === 0 ? '1 звезды' : finalStars === 1 ? '2 звёзд' : '3 звёзд';
+  }
+
+  if(need > 0){
+    $('finalNextAward').textContent = 'До ' + target + ' не хватило ' + need + ' ' +
+      (need === 1 ? 'верного ответа' : (need < 5 ? 'верных ответов' : 'верных ответов')) + '. Попробуй ещё раз!';
+  } else {
+    $('finalNextAward').textContent = 'Максимальная награда — 3 звезды! Так держать!';
+  }
+
+  setRonie('Миссия выполнена! Горжусь тобой, капитан!');
+  speak('Миссия выполнена! Горжусь тобой, капитан!');
+  showScreen('screen-final');
+}
+
+/* =========================================================
+   ОШИБКИ
+   ========================================================= */
+function showMistakes(){
+  var list = $('mistakesList');
+  var keys = Object.keys(S.mistakes);
+  if(keys.length === 0){
+    list.innerHTML = '<p style="text-align:center;color:#5d8199">Ошибок нет — отличная работа! 🎉</p>';
+  } else {
+    var html = '';
+    for(var i=0;i<keys.length;i++){
+      var m = S.mistakes[keys[i]];
+      html += '<div class="mistake-item">'+
+        '<div class="stg">'+m.stage+'</div>'+
+        '<div><b>' + m.question + '</b></div>'+
+        '<div>Правильный ответ: <span class="ans">'+m.answer+'</span></div>'+
+        '</div>';
+    }
+    list.innerHTML = html;
+  }
+  $('mistakesModal').hidden = false;
+}
+
+/* =========================================================
+   ПРИВЯЗКА СОБЫТИЙ (после DOM)
+   ========================================================= */
+function attach(){
+  $('startBtn').addEventListener('click', function(){
+    sndClick();
+    try { AC(); } catch(e){}
+    showMap();
+  });
+
+  $('mapToStart').addEventListener('click', function(){
+    resetAll();
+  });
+
+  $('quizNext').addEventListener('click', function(){
+    if(this.classList.contains('locked')){ toast('Сначала ответьте на вопрос'); return; }
+    sndClick();
+    quizNext();
+  });
+
+  $('lrRetry').addEventListener('click', function(){
+    sndClick();
+    startLevel(S.s1.lvl);
+  });
+
+  $('lrNext').addEventListener('click', function(){
+    if(this.classList.contains('locked')){ toast('Нужно не меньше 70%'); return; }
+    sndClick();
+    var allPassed = S.s1.passed[1] && S.s1.passed[2] && S.s1.passed[3];
+    if(allPassed){ showStageSummary(1); }
+    else { showMap(); }
+  });
+
+  $('sumNext').addEventListener('click', function(){
+    sndClick();
+    var badge = $('sumBadge').textContent;
+    if(badge === 'Этап 1'){ renderFill(); }
+    else if(badge === 'Этап 2'){ renderOdd(); }
+    else if(badge === 'Этап 3'){ showFinal(); }
+  });
+
+  $('fillClear').addEventListener('click', function(){
+    if(S.s2.checked) return;
+    sndClick();
+    renderFill();
+  });
+
+  $('fillCheck').addEventListener('click', function(){
+    sndClick();
+    checkFill();
+  });
+
+  $('fillNext').addEventListener('click', function(){
+    if(this.classList.contains('locked')){ toast('Сначала проверьте ответы'); return; }
+    sndClick();
+    showStageSummary(2);
+  });
+
+  $('oddNext').addEventListener('click', function(){
+    if(this.classList.contains('locked')){ toast('Сначала найди лишнее'); return; }
+    sndClick();
+    nextOdd();
+  });
+
+  $('playAgain').addEventListener('click', function(){
+    sndClick();
+    resetAll();
+  });
+
+  $('showMistakes').addEventListener('click', function(){
+    sndClick();
+    showMistakes();
+  });
+
+  $('closeMistakes').addEventListener('click', function(){
+    $('mistakesModal').hidden = true;
+  });
+
+  $('soundBtn').addEventListener('click', function(){
+    S.sound = !S.sound;
+    this.textContent = S.sound ? '🔊' : '🔇';
+    if(S.sound){ sndClick(); }
+  });
+}
+
+/* =========================================================
+   ПУЗЫРИ + СТАРТ
+   ========================================================= */
+function makeBubbles(){
+  var w = $('bubbles');
+  for(var i=0;i<16;i++){
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    var sz = 8 + Math.random()*30;
+    b.style.width = sz+'px';
+    b.style.height = sz+'px';
+    b.style.left = (Math.random()*100)+'%';
+    b.style.animationDuration = (10 + Math.random()*14)+'s';
+    b.style.animationDelay = (-Math.random()*20)+'s';
+    w.appendChild(b);
+  }
+}
+
+function init(){
+  makeBubbles();
+  updateHUD();
+  attach();
+  showScreen('screen-start');
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+</body>
+</html>
